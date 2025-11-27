@@ -1,0 +1,85 @@
+Attribute VB_Name = "Module1"
+Option Explicit
+
+Sub ZakonczTrening()
+
+    Dim wsSrc As Worksheet      'Trening A
+    Dim wsDst As Worksheet      'Dane Tygodniowe
+    Dim lastRowSrc As Long
+    Dim lastRowDst As Long
+    Dim i As Long
+    
+    Dim dataTr As Variant
+    Dim plan As Variant
+    Dim tydzien As Variant
+    
+    Set wsSrc = ThisWorkbook.Worksheets("Trening A")
+    Set wsDst = ThisWorkbook.Worksheets("Dane Tygodniowe")
+    
+    '----- Dane ogólne treningu -----
+    dataTr = wsSrc.Range("B1").Value     'Data treningu
+    plan = wsSrc.Range("B2").Value       'Plan (Trening A itp.)
+    'TU WPISZ KOMÓRKÊ Z NUMEREM TYGODNIA JEŒLI J¥ MASZ – na razie zostawiê L2:
+    '----- OBLICZANIE TYGODNIA W VBA (Fix) -----
+    If IsDate(dataTr) Then
+        'U¿ywamy ISOWeekNum, to standard w Europie
+        tydzien = Application.WorksheetFunction.IsoWeekNum(dataTr)
+    Else
+        MsgBox "Niepoprawna data w komórce B1!", vbExclamation
+        Exit Sub
+    End If
+    
+    '----- SZUKAMY KOÑCA ZIELONEJ TABELI -----
+    'Startujemy od wiersza 5 (pierwsze æwiczenie)
+    i = 5
+    Do While wsSrc.Cells(i, "A").Value <> ""   'dopóki jest LP
+        i = i + 1
+    Loop
+    lastRowSrc = i - 1                     'ostatni wype³niony wiersz LP
+    
+    'Jeœli nie ma ¿adnych æwiczeñ – wychodzimy
+    If lastRowSrc < 5 Then
+        MsgBox "Brak danych w zielonej tabeli.", vbExclamation
+        Exit Sub
+    End If
+    
+    '----- Ostatni wiersz w Dane Tygodniowe -----
+    lastRowDst = wsDst.Cells(wsDst.Rows.Count, "A").End(xlUp).Row
+    If lastRowDst < 2 Then lastRowDst = 1    'gdy tylko nag³ówki
+    
+    '----- Przenoszenie danych -----
+    For i = 5 To lastRowSrc
+        
+        If wsSrc.Cells(i, "A").Value <> "" Then    'jeœli jest LP
+            
+            lastRowDst = lastRowDst + 1
+            
+            'A Data, B Tydzieñ, C Plan, D LP, E Kategoria, F Æwiczenie,
+            'G Serie, H Powtórzenia, I Ciê¿ar, J Objêtoœæ æwiczenia,
+            'K Objêtoœæ treningu, L Notatki
+            
+            wsDst.Cells(lastRowDst, "A").Value = dataTr
+            wsDst.Cells(lastRowDst, "B").Value = tydzien
+            wsDst.Cells(lastRowDst, "C").Value = plan
+            
+            wsDst.Cells(lastRowDst, "D").Value = wsSrc.Cells(i, "A").Value   'LP
+            wsDst.Cells(lastRowDst, "E").Value = wsSrc.Cells(i, "B").Value   'Kategoria
+            wsDst.Cells(lastRowDst, "F").Value = wsSrc.Cells(i, "C").Value   'Æwiczenie
+            wsDst.Cells(lastRowDst, "G").Value = wsSrc.Cells(i, "D").Value   'Serie
+            wsDst.Cells(lastRowDst, "H").Value = wsSrc.Cells(i, "E").Value   'Powtórzenia
+            wsDst.Cells(lastRowDst, "I").Value = wsSrc.Cells(i, "F").Value   'Ciê¿ar
+            wsDst.Cells(lastRowDst, "J").Value = wsSrc.Cells(i, "I").Value   'Objêtoœæ æwiczenia [kg]
+            wsDst.Cells(lastRowDst, "K").Value = wsSrc.Cells(i, "J").Value   'Objêtoœæ treningu [kg]
+            wsDst.Cells(lastRowDst, "L").Value = wsSrc.Cells(i, "H").Value   'Notatki
+            
+        End If
+        
+    Next i
+    
+    '----- Czyszczenie zielonej tabeli -----
+    wsSrc.Range("D5:F" & lastRowSrc).ClearContents
+    
+    MsgBox "Trening przeniesiony (tylko zielona tabela) i wyczyszczony.", vbInformation
+
+End Sub
+
